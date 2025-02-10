@@ -7,66 +7,81 @@ using System;
 using Xunit;
 
 using Moq;
+using CustomerAPI_LM.Delegates;
 
 namespace CustomerAPITests
 {
     public class CustomerControllerTests
     {
         private readonly CustomerController _customerController;
-        private readonly ICustomerService _customerService;
+        private readonly Mock<GetCustomerByIdDelegate> _mockGetCustomerById;
+        private readonly Mock<UpdateCustomerDelegate> _mockUpdateCustomer;
 
         public CustomerControllerTests()
         {
-            _customerService = new CustomerService();
-            _customerController = new CustomerController(_customerService);
+            _mockGetCustomerById = new Mock<GetCustomerByIdDelegate>();
+            _mockUpdateCustomer = new Mock<UpdateCustomerDelegate>();
+            var customerService = new CustomerService(_mockGetCustomerById.Object, _mockUpdateCustomer.Object);
+            _customerController = new CustomerController(customerService);
         }
 
         [Fact]
-        public void GetCustomer_ValidId_ReturnsOk()
+        public void GetCustomer_ValidId_ReturnsOk_CustomerExists()
         {
             //Arrange
-            var result = _customerController.GetCustomerById(1) as OkObjectResult;
+            var customer = new Customer { Id = 1, FirstName = "Mack", LastName = "Duck", Address = "Waterland" };
+            _mockGetCustomerById.Setup(m => m(1)).Returns(customer);
 
             //Act
-            Assert.NotNull(result);
+            var result = _customerController.GetCustomerById(1);
 
             //Assert
-            Assert.Equal(200, result.StatusCode);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnedCustomer = Assert.IsType<Customer>(okResult.Value);
+            Assert.Equal(customer.FirstName, returnedCustomer.FirstName);
+
         }
 
         [Fact]
-        public void GetCustomer_InvalidId_ReturnsNotFound()
+        public void GetCustomer_InvalidId_ReturnsNotFound_CustomerDoesNotExist()
         {
-            var result = _customerController.GetCustomerById(99) as NotFoundResult;
-            Assert.NotNull(result);
-            Assert.Equal(404, result.StatusCode);
+            //Arrange
+            _mockGetCustomerById.Setup(d => d(It.IsAny<int>())).Returns((Customer)null);
+
+            //Act
+            var result = _customerController.GetCustomerById(101);
+
+            //Assert
+            Assert.IsType<NotFoundObjectResult>(result);
+
         }
         [Fact]
-        public void PatchCustomer_ValidId_ReturnsNoContent()
+        public void PatchCustomer_InvalidId_ReturnsNotFound_CustomerDoesNotExists()
         {
-            
             // Arrange
-            var mockService = new Mock<ICustomerService>();
-            var controller = new CustomerController(mockService.Object);
-
-            JsonPatchDocument<Customer> patchDoc = new JsonPatchDocument<Customer>();
-            patchDoc.Replace(c => c.FirstName, "ABC");
-            patchDoc.Add(c => c.LastName, "DEF");
-
-            var existingCustomer = new Customer { Id = 1, FirstName = "Jason", LastName="Smith" };
-            //mockService.Setup(s => s.GetCustomerById(1)).Returns(existingCustomer);
-
-            patchDoc.ApplyTo(existingCustomer);
-
-            //mockService.Setup(s => s.UpdateCustomerById(1, existingCustomer));
+            _mockGetCustomerById.Setup(m=>m(It.IsAny<int>())).Returns((Customer)null);
 
             // Act
-            var result = controller.UpdateCustomerById(1, existingCustomer);
-
-            // Assert
-            Assert.IsType<NoContentResult>(result);
+            var result = _customerController.UpdateCustomerById(1, new Customer());
             
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result);
+                
         }
+
+        [Fact]
+        public void PatchCustomer_ValidId_ReturnsNoContent_CustomerExists()
+        {
+            //Arrange
+            var customer = new Customer { Id = 1, FirstName = "Mack", LastName = "Duck", Address = "Waterland" };
+            _mockGetCustomerById.Setup(d => d(1)).Returns(customer);
+
+            //Act
+            var result = _customerController.UpdateCustomerById(1, new Customer { FirstName = "Mack", LastName="Duck" });
+
+            //Assert
+            Assert.IsType<NoContentResult>(result);
+        } 
 
     }
 }

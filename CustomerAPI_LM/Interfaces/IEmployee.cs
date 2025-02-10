@@ -8,7 +8,7 @@ namespace CustomerAPI_LM.Interfaces
 {    public interface IEmployeeService
     {
         Employee GetEmployee(int id);
-        Employee UpdateEmployeeRecord(int id, Employee updatedEmployee);
+        void UpdateEmployeeRecord(int id, Employee updatedEmployee);
     }
 
 }

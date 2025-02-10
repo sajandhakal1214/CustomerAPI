@@ -29,13 +29,15 @@ public class CustomerController : ControllerBase
     [HttpPatch("{id}")]
     public IActionResult UpdateCustomerById(int id, [FromBody] Customer customer)
     {
-        var updatedCustomer = _customerService.UpdateCustomerRecord(id, customer);
+        var existingCustomer = _customerService.GetCustomer(id);
 
-        if (updatedCustomer ==null)
+        if (existingCustomer == null)
         {
             return NotFound("Customer not found"); 
         }
 
-        return Ok(updatedCustomer); 
+        _customerService.UpdateCustomerRecord(id, customer);
+
+        return NoContent();
     }
 }

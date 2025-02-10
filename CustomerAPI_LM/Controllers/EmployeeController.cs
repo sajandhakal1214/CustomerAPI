@@ -16,7 +16,7 @@ namespace CustomerAPI_LM.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetEmployee(int id)
+        public IActionResult GetEmployeeById(int id)
         {
             var employee = _employeeService.GetEmployee(id);
             if (employee == null)
@@ -29,14 +29,16 @@ namespace CustomerAPI_LM.Controllers
         [HttpPatch("{id}")]
         public IActionResult UpdateEmployeeById(int id, [FromBody] Employee employee)
         {
-            var updatedEmployee = _employeeService.UpdateEmployeeRecord(id, employee);
+            var existingEmployee = _employeeService.GetEmployee(id);
 
-            if (updatedEmployee == null)
+            if (existingEmployee == null)
             {
                 return NotFound("Employee not found");
             }
 
-            return Ok(updatedEmployee);
+            _employeeService.UpdateEmployeeRecord(id, employee);
+
+            return NoContent();
         }
 
 

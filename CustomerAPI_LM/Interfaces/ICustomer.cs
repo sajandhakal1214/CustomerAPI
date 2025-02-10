@@ -9,7 +9,7 @@ namespace CustomerAPI_LM.Interfaces
     public interface ICustomerService
     {
         Customer GetCustomer(int id);
-        Customer UpdateCustomerRecord(int id, Customer updatedCustomer);
+        void UpdateCustomerRecord(int id, Customer updatedCustomer);
     }
 
 }

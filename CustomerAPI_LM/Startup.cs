@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CustomerAPI_LM.Delegates;
 using CustomerAPI_LM.Interfaces;
 using CustomerAPI_LM.Services;
 using Microsoft.AspNetCore.Builder;
@@ -30,6 +31,12 @@ namespace CustomerAPI_LM
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddSingleton<ICustomerService, CustomerService>();
             services.AddSingleton<IEmployeeService, EmployeeService>();
+
+            services.AddSingleton<GetCustomerByIdDelegate>(CustomerDelegates.GetCustomerById);
+            services.AddSingleton<UpdateCustomerDelegate>(CustomerDelegates.UpdateCustomer);
+
+            services.AddSingleton<GetEmployeeByIdDelegate>(EmployeeDelegates.GetEmployeeById);
+            services.AddSingleton<UpdateEmployeeDelegate>(EmployeeDelegates.UpdateEmployee);
 
         }
 
